@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Text label</title>
+    <link rel="stylesheet" href="../openlayers/css/ol.css">
+    <style>
+        .map {
+        height: 500px;
+        width: 100%;
+      }
+    </style>
+    <script src="../openlayers/build/ol.js"></script>
+   
+</head>
+<body>
+    <div id="map" class="map"></div> 
+    <script >
+        
+        let labelStyle = new ol.style.Style({
+            text:new ol.style.Text({
+                font:'bold 20px serif',
+                text: '北京',
+                fill: new ol.style.Fill({
+                    color: 'rgba(255, 0, 0, 1)'
+                })
+
+            })
+        });
+
+
+        let labelFeature = new ol.Feature({
+           geometry: new ol.geom.Point([12956325, 4851028])   
+        });
+        labelFeature.setStyle(labelStyle);
+        
+
+        let pointFeature=new ol.Feature({
+            geometry:new ol.geom.Point([12956325, 4851028]),
+            name:'点要素'
+        });
+
+        let lineFeature=new ol.Feature({
+            geometry:new ol.geom.LineString([[11590147, 4322577], [13594369, 3872784]]),
+            name:'线要素'
+        });
+
+        let  polygonFeature=new ol.Feature({
+            geometry: new ol.geom.Polygon([[[9.594226,47.525058],[9.632932,47.347601],[9.47997,47.10281],[9.932448,46.920728],[10.442701,46.893546],[10.363378,46.483571],[9.922837,46.314899],[9.182882,46.440215],[8.966306,46.036932],[8.489952,46.005151],[8.31663,46.163642],[7.755992,45.82449],[7.273851,45.776948],[6.843593,45.991147],[6.5001,46.429673],[6.022609,46.27299],[6.037389,46.725779],[6.768714,47.287708],[6.736571,47.541801],[7.192202,47.449766],[7.466759,47.620582],[8.317301,47.61358],[8.522612,47.830828],[9.594226,47.525058]]]),
+            name: '多边形要素'
+
+        });
+
+        let vectorSource=new ol.source.Vector();
+        vectorSource.addFeature(pointFeature);
+        vectorSource.addFeature(lineFeature);
+        vectorSource.addFeature(polygonFeature);
+        vectorSource.addFeature(labelFeature);
+
+        let vectorLayer=new ol.layer.Vector({
+            source:vectorSource
+        });
+
+       
+        let map=new ol.Map({
+            target:'map',
+            layers:[
+                new ol.layer.Tile({
+                    source:new ol.source.OSM()
+                }),
+                vectorLayer
+            ],
+            view:new ol.View({
+                center: [0, 0],
+                zoom:0
+                /* 
+                center: ol.proj.fromLonLat([37.41, 8.82]),
+                zoom: 4
+                */
+            })
+          
+        });
+    </script>  
+</body>
+</html>

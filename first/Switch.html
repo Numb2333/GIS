@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Switch Layers</title>
+    <script src="https://unpkg.com/elm-pep"></script>
+    <style>
+        .map {
+            width: 100%;
+            height: 400px;
+        }
+    </style>
+    <link rel="stylesheet" href="../openlayers/css/ol.css">
+    <script src="../openlayers/build/ol.js"></script>
+</head>
+<body>
+    <div id="controls">
+        <input type="checkbox" id="osm" checked />OpenStreetMap
+        <input type="checkbox" id="stamen" />Stamen Map
+        <input type="checkbox" id="Bing"/>BingMap
+    </div>
+    <div id="map" class="map"></div>
+ 
+    <script>
+        var map = new ol.Map({
+            target: 'map',
+            layers: [
+                new ol.layer.Tile({
+                    source:new ol .source.OSM(),
+                    
+                }),
+                new ol.layer.Tile({
+                    source:new ol .source.Stamen({
+                        layer:'watercolor'
+                    }),
+                    visible:false
+                }),
+                new ol.layer.Tile({
+                    source:new ol.source.BingMaps({
+                        key:'AkjzA7OhS4MIBjutL21bkAop7dc41HSE0CNTR5c6HJy8JKc7U9U9RveWJrylD3XJ',
+                        imagerySet:'Road'
+                    }),
+                    visible:false
+                })   
+            ],
+            view: new ol.View({
+                center: [0, 0],
+                zoom: 2
+            })
+        });
+
+        let controls=document.getElementById('controls');
+        controls.addEventListener('click',(event)=>{
+            if(event.target.checked){
+                switch(event.target.id){
+                    case "osm":
+                        map.getLayers().item(0).setVisible(true);  
+                        break;
+                    case "stamen":
+                        map.getLayers().item(1).setVisible(true);
+                        break;
+                    case "Bing":
+                        map.getLayers().item(2).setVisible(true);
+                        break;
+                    default:break;
+                }
+            }else{
+                switch(event.target.id){
+                    case "osm":
+                         map.getLayers().item(0).setVisible(false);
+                         break;
+                    case "stamen":
+                        map.getLayers().item(1).setVisible(false);
+                        break;
+                    case "Bing":
+                        map.getLayers().item(2).setVisible(false);
+                        break;
+                    default:break;
+                }
+            }
+        })
+    </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control</title>
+    <link rel="stylesheet" href="../openlayers/css/ol.css">
+    <script src="../openlayers//build/ol.js"></script>
+    <style>
+        .map{
+            height: 500px;
+            width: 100%;
+        }
+        
+    </style>
+    <style>
+        .mouse-position-wrapper{
+            width: 300px;
+            height: 39px;
+            color: black;
+            position: absolute;
+            right: 20px;
+            bottom: 6px;
+            z-index: 999;
+        }
+    </style>
+    <style>
+        .ol-scale-line{
+            left:100px;
+        }
+    </style>
+    
+</head>
+<body>
+    <div id="map" class="map"></div>
+    <div id="mouse-position" class="mouse-position-wrapper">
+        <div class="custom-mouse-position"></div>
+    </div>
+    <script>
+        let map =new ol.Map({
+            target:'map',
+            layers:[
+                new ol.layer.Tile({
+                    source:new ol.source.OSM()
+                })
+            ],
+            view:new ol.View({
+                projection: 'EPSG:3857',
+                center: [0, 0],
+                zoom: 0
+            }),
+            controls:ol.control.defaults().extend([
+                new ol.control.FullScreen(),//全屏控件
+                new ol.control.MousePosition({
+                    className:'custom-mouse-position',
+                    target:document.getElementById('mouse-position')
+                }), //鼠标放置图层会显示位置的坐标
+                new ol.control.OverviewMap({
+                    layers:[
+                        new ol.layer.Tile({
+                            source:new ol.source.OSM()
+                        })
+                    ]
+                }),// 全局视图，即鹰眼视图
+                new ol.control.ScaleLine({}), //比例尺控件
+                new ol.control.ZoomSlider({}), //滑块控件
+                new ol.control.ZoomToExtent({}) //缩放到图层控件
+                
+            ])     
+                
+           
+        })
+    </script>
+    
+</body>
+</html>

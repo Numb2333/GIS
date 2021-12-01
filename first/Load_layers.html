@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loadlayer</title>
+    <link rel="stylesheet" href="../openlayers/css/ol.css">
+    <style>
+        .map {
+        height: 500px;
+        width: 100%;
+      }
+    </style>
+    <script src="../openlayers/build/ol.js"></script>
+   
+</head>
+<body>
+    <div id="map" class="map"></div> 
+    <script >
+        let map=new ol.Map({
+            target:'map',
+            layers:[
+                new ol.layer.Tile({
+                    //source:new ol.source.OSM(), //成功，加载OSM地图
+                    /*
+                    source:new ol.source.BingMaps({
+                        key:'AkjzA7OhS4MIBjutL21bkAop7dc41HSE0CNTR5c6HJy8JKc7U9U9RveWJrylD3XJ',
+                        imagerySet:'Road'
+                    }),//成功，加载Bing地图
+                    */
+                   /*
+                    source:new ol.source.Stamen({
+                        layer:'watercolor'
+                    }),//成功，加载Stamen地图
+                    */
+                   /*
+                    source: new ol.source.MapQuest({
+                       layer:'osm'
+                   }), //加载不出来
+                   */
+                   source: new ol.source.TileArcGISRest({
+                       
+                       url:'https://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StateCityHighway_USA/MapServer'  //加载不出来
+
+                   })
+                   
+
+
+                }),
+               
+            ],
+            view:new ol.View({
+               
+                center: ol.proj.fromLonLat([37.41, 8.82]),
+                zoom: 4
+            })
+          
+        });
+    </script>  
+</body>
+</html>

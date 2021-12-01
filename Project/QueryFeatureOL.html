@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>openlayer矢量要素渲染查询</title>
+    <link rel="stylesheet" href="../openlayers/css/ol.css">
+    <script src="../openlayers/build/ol.js"></script>
+    <script src="../openlayers/jquery-3.6.0.js"></script>
+    <style type="text/css">
+        #map,
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+        }
+        .content {
+            width: 100px;
+        }
+
+    </style>
+</head>
+
+<body>
+<div id="map"></div>
+<div id="attributetable">
+    <table>
+        <thead>
+        <tr>
+            <th>name_py</th>
+            <th>name_ch</th>
+        </tr>
+        </thead>
+        <tbody id="attributetbody">
+        </tbody>
+    </table>
+</div>
+<script>
+// 没有完成GeoServer的交互
+</script>
+</body>
+<script type="text/javascript">
+    //线上线下访问url不同，可变配置提出
+    var baseurl ='http://localhost:8080/';
+    //视窗，openlayer默认坐标系是平面墨卡托
+    var view = new ol.View({
+        center: ol.proj.transform([116.400146,40.250184], 'EPSG:4326', 'EPSG:3857'),
+        zoom: 9
+    });
+    //图层，加载腾讯底图和geoserver发布的wmts
+    var layers = [
+        new ol.layer.Tile({
+            source: new ol.source.XYZ({
+                url: "http://rt{0-3}.map.gtimg.com/realtimerender?z={z}&x={x}&y={-y}&type=vector&style=0"
+            })
+        }),
+        new ol.layer.Image({
+            source: new ol.source.ImageWMS({
+                ratio: 1,
+                url: 'http://localhost:8080/geoserver/wms?',//这个可以打开geoserver的preview，看openlayer页面截取url
+                // 请求参数
+                params: {
+                    'SERVICE': 'WMS',
+                    'VERSION': '1.1.1',
+                    'REQUEST': 'GetMap',
+                    'FORMAT': 'image/png',
+                    'TRANSPARENT': true,
+                    'tiled': true,
+                    'LAYERS': 'TestGIS:shanxi',//图层，前面是工作空间，后面是图层名，
+                    'exceptions': 'application/vnd.ogc.se_inimage',
+                    'singleTile': true//单瓦片，渲染成一张图片
+                }
+            }),
+        }),
+    ];
+    //地图
+    var map = new ol.Map({
+        target: 'map',
+        layers: layers,
+        view: view
+    });
+    //地图点击事件
+    $("#map").click(function (e) {
+        //获取地图上点击的地理坐标，平面墨卡托坐标系
+        var t3857=map.getEventCoordinate(e);
+        console.log(t3857);
+        t4326=ol.proj.transform(t3857, 'EPSG:3857', 'EPSG:4326');
+        console.log(t4326);
+        // BBOX,minlng,minlat,maxlng,maxlat,平面墨卡托就是minx,miny,maxx,maxy，下面的url3857里的bbox是一个2m×2m的小矩形
+        //构造请求url的时候，把坐标系写成3857，虽然后台数据是4326坐标系的，但geoserver能内部转换
+        var url3857=baseurl+'geoserver/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo&FORMAT=image%2Fpng&TRANSPARENT=true&QUERY_LAYERS=gismap%3Av6_time_pref_pgn_utf_wgs84&LAYERS=gismap%3Av6_time_pref_pgn_utf_wgs84&exceptions=application%2Fvnd.ogc.se_inimage&INFO_FORMAT=application/json&FEATURE_COUNT=50&X=50&Y=50&SRS=EPSG%3A3857&STYLES=&WIDTH=101&HEIGHT=101&BBOX='+(t3857[0]-1).toString()+'%2C'+(t3857[1]-1).toString()+'%2C'+(t3857[0]+1).toString()+'%2C'+(t3857[1]+1).toString();
+        console.log(url3857);
+        $.ajax(
+            {
+                url:url3857,
+                type:'GET',
+                dataType:'json',
+                headers:{'Content-Type':'application/json;charset=utf8'},
+                success:function(data){
+                    //这个方法直接把geojson转为feature数组
+                    features=(new ol.format.GeoJSON()).readFeatures(data);
+                    //新建矢量资源
+                    var vectorSource = new ol.source.Vector({
+                        features: features
+                    });
+                    //新建矢量图层
+                    var vectorLayer = new ol.layer.Vector({
+                        source: vectorSource,
+                        style: polygonStyleFunction
+                    });
+                    //将矢量图层添加到map
+                    map.addLayer(vectorLayer);
+                    //更新属性表
+                    for(var i=0;i<data['features'].length;i++){
+                        var properties=data['features'][i]['properties'];
+                        var name_py=properties['name_py'];
+                        var name_ch=properties['name_ch'];
+                        var tabletxt='<tr><td>'
+                            +name_py+'</td><td>'
+                            +name_ch+'</td></tr>';
+                        $("#attributetbody").append(tabletxt);
+                    }
+                },
+                error:function(data){
+                    console.log('faile');
+                    console.log(data);
+                }
+            }
+        );
+    });
+    //制图风格，标注内容要从要素中获取，每个要素的name_ch属性不同，所以制图风格是方法，而不是静态的
+    function polygonStyleFunction(feature) {
+        return new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: 'rgba(192, 0, 0, 1)',
+                width: 2
+            }),
+            fill: new ol.style.Fill({
+                color: 'rgba(192, 192, 192, 0.5)'
+            }),
+            text: createTextStyle(feature)
+        });
+    };
+    //创建注记
+    function createTextStyle(feature) {
+        return new ol.style.Text({
+            font: '20px Microsoft YaHei',
+            text:  getText(feature),
+            fill: new ol.style.Fill({
+                color: 'rgba(192, 0, 0, 1)'
+            }),
+            stroke: new ol.style.Stroke({color: 'rgba(255, 255, 255, 1)', width: 1}),
+        })
+    };
+    //获取要素属性内容
+    function getText(feature) {
+        return feature.get('name_ch').toString();
+    };
+</script>
+<style type="text/css">
+    * {
+        margin: 0px;
+        padding: 0px;
+    }
+    body,
+    button,
+    input,
+    select,
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+    #attributetable {
+        width: 100%;
+        height: 5%;
+        margin: 10px;
+    }
+    table {
+        border-collapse: collapse;
+        border-spacing: 0;
+        border: 1px solid #c0c0c0;
+    }
+    th,td {
+        border: 1px solid #d0d0d0;
+        color: #404060;
+        padding: 10px;
+    }
+    th {
+        background-color: #C00000;
+        font: bold 16px "微软雅黑";
+        color: #fff;
+    }
+    td {
+        font: 14px "微软雅黑";
+    }
+    tbody tr {
+        background-color: #f0f0f0;
+    }
+    tbody tr:hover {
+        cursor: pointer;
+        background-color: #fafafa;
+    }
+</style>
+</html>
