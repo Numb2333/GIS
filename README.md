@@ -1,0 +1,9 @@
+# GIS
+openlayers
+OpenLayers code
+该项目代码主要是学习GIS开发的基础知识，结合OpenLayers的基础操作和GIS服务器。
+1、Openlayers文件夹是官网CSS以及JS等样式代码
+2、First文件夹是OpenLayers简单的控件操作、加载地图等
+3、Project文件夹是前端Openlayers、Geoserver服务器交互代码等
+
+目前存在问题：Openlayers和GeoServer交互失败，不能通过Openlayers访问Geoserver中发布的地图。
